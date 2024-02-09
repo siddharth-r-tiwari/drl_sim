@@ -53,15 +53,16 @@ def init(tsk, n_trials, t_int, delta, types, t_stim,
     for i in range(types):
         for n in range(n_trials):
             if tsk == 'hyp_unif':
-                r[i, n, t_unc(step(t_rew[i].item()) - 1)] = s_rew[i].item()
+                r[i, n, t_unc(step(t_rew[i].item()) - 1)] = s_rew[i].item() #reward of ith state at (specified) time step is a (specified) fixed reward
             elif tsk == 'hyp_var':
                 r[i, n, t_unc(step(t_rew[i].item()) - 1)] = torch.normal(s_rew[i, 0],
-                        s_rew[i, 1])
+                        s_rew[i, 1]) #reward of ith state at (specified) time step is a random reward from a normal distribution with (specified) mean, sd
             elif tsk == 'var':
                 r[i, n, t_unc(step(t_rew[i].item()) - 1)] = s_rew[gen_state(s_rew[:,
-                        1]), 0]
-            elif tsk == 'delay':
-                if i == 4:
+                        1]), 0] # reward of state (only 1) at (specified) time step has 1 of 6 rewards with specified probabilities
+                                # The "Var" task from Sara Matias' experiments
+            elif tsk == 'delay': 
+                if i == 4: # 6 states, the "Delay" task from Sara Matia's experiments
                     rew = [0, 3]
                     r[i, n, t_unc(step(2.3) - 1)] = torch.tensor(rew[gen_state([0.5,0.5])])
                     r[i, n, t_unc(step(5.45) - 1)] = torch.tensor(rew[gen_state([0.5,0.5])])
@@ -94,8 +95,9 @@ def sim(T, x, r, tsk, num_predictors, a, g, l, fname=["none"]):
     dict: A dictionary containing the experiment results/details including:
         - 'V' (torch.Tensor): The value estimates tensor of shape (num_predictors, types, n_trials, steps).
         - 'deltas' (torch.Tensor): The deltas tensor of shape (num_predictors, types, n_trials, steps - 1).
-        - 'time_steps' (int): The number of time steps in the simulation.
-        - 'rewards' (torch.Tensor): The reward tensor of shape (types, n_trials, T).
+        - 'T' (int): The number of time steps in the simulation.
+        - 'r' (torch.Tensor): The reward tensor of shape (types, n_trials, T).
+        - 'dt' (float): The time step size.
         - 'states' (list): The list of generated states during the simulation.
         - 'alpha' (torch.Tensor): The alpha parameter tensor of shape (num_predictors, 2).
         - 'gamma' (torch.Tensor): The gamma parameter tensor of shape (num_predictors, 2).
@@ -177,9 +179,9 @@ def sim(T, x, r, tsk, num_predictors, a, g, l, fname=["none"]):
 
         states.append(state)
 
-    exp = {'V' : V, 'deltas' : deltas, 'T' : T, 'r': r, 'states' : states, 'alpha' : alpha, 'gamma' : gamma, 'lmbda' : lmbda}
-    if fname != "none":
-        torch.save(exp, f'{fname[0]}.pth')
+    exp = {'V' : V, 'deltas' : deltas, 'T' : T, 'r': r, 'dt': dt, 'states' : states, 'alpha' : alpha, 'gamma' : gamma, 'lmbda' : lmbda}
+    if fname[0] != "none":
+        torch.save(exp, f'{fname}.pth')
     return exp
 
 
@@ -187,7 +189,6 @@ def sim(T, x, r, tsk, num_predictors, a, g, l, fname=["none"]):
 
 def val_at_t(exp,
     state,
-    dt,
     time,
     diversify=['none'],
     trials=['none'],
@@ -199,7 +200,6 @@ def val_at_t(exp,
     Parameters:
         exp (dict): Experiment data containing value estimates, reward, etc.
         state (int): The state within the experiment trials to consider.
-        dt (float): The time step used in the experiment.
         time (float): The specific time point (within the interval) to visualize.
         diversify (list, optional): List of diversification parameters. Defaults to ['none'].
         trials (list, optional): List of trial indices to consider. Defaults to ['none'].
@@ -326,8 +326,8 @@ def val_at_t(exp,
         plt.legend()
         plt.show()
 
-    if fname != "none":
-        plt.savefig(f'{fname[0]}.png')
+        if fname[0] != "none":
+            plt.savefig(f'{fname}_valat{time}.png')
 
 def heatmap(exp, state, prs, diversify=['none'], fname=["none"]):
     """
@@ -375,19 +375,20 @@ def heatmap(exp, state, prs, diversify=['none'], fname=["none"]):
         plt.colorbar()
         plt.xlabel('Step')
         plt.ylabel('Trial')
+
+        if fname[0] != "none":
+            plt.savefig(f'{fname}_pr{i}_hm.png')
+
         plt.show()
 
-        if fname != "none":
-            plt.savefig(f'{fname[0]}_{i}.png')
-
-def val_over_t(e, st, dt, fname=["none"], diversify=["none"], trials = ["none"]):
+def val_over_t(e, st, stp, fname=["none"], diversify=["none"], trials = ["none"]):
     """
     Plot the value, reward, and TD error over time for a given experiment and state.
 
     Parameters:
     - e (dict): Experiment data containing value estimates, reward, etc.
     - st (int): The state within the experiment trials to consider.
-    - dt (float): The time step for the x-axis. (NOTE: Not same usage as in other functions, above)
+    - stp (float): The time step for the x-axis. (NOTE: Not same usage as dt in other functions, above)
     - fname (list, optional): The filename to save the animation. Default is ["none"].
     - diversify (list, optional): The diversification parameters. Default is ["none"].
     - trials (list, optional): List of diversification parameters. Defaults to ['none'].
@@ -591,13 +592,13 @@ def val_over_t(e, st, dt, fname=["none"], diversify=["none"], trials = ["none"])
             axs[2][i].set_ylim(-mag, mag)
         axs[2][0].tick_params(axis='x', rotation=90)
 
-    plt.setp(axs, xticks=np.arange(0, exp['T'][-1] + dt, dt))
+    plt.setp(axs, xticks=np.arange(0, exp['T'][-1] + stp, stp))
     plt.tight_layout()
 
     plt.close(animation._fig)
     HTML(animation.to_jshtml())
-    if fname != "none":
-        animation.save(f'{fname[0]}.gif', writer=PillowWriter(fps=7))
+    if fname[0] != "none":
+        animation.save(f'{fname}_valot.gif', writer=PillowWriter(fps=7))
 
 
 
