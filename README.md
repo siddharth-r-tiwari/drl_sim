@@ -39,8 +39,11 @@ Sample implementations in `sim.ipynb`.
 
 Use 1 of 3 visualizations for simulated data:
 - Value at Time (`val_at_t`): Value at inputted time, across trials.
+![image info](./figs/var_valat2.png)
 - TD-Error Heatmap (`heatmap`): TD error across trials and time steps in a given trial.
+![image info](./figs/var_pr4_hm.png)
 - Value over Time (`val_over_t`): Animation of value over trials for all predictors (at all time steps).
+![image info](./figs/var_valot.gif)
 
 Every visualization has the option to "diversify" parameters, such that we can observe how value predictors with different parameters behave in response to the same reward schedules. The specifications for this are included in `sim.ipynb`
 
