@@ -12,10 +12,16 @@ Created by Siddharth Tiwari for the Uchida Lab (2024).
 
 ## Implementing Simulations
 
-Simply follow three steps when simulating/visualizing experiments!
+The ability to easily implement new task contingencies, observe diversity in learning, and abstract heavy algorithms was kept at the forefront of design. Simply follow three steps when simulating/visualizing experiments!
+
+0. (Set up Environment)
 1. <b>Update Trial Parameters</b>
 2. <b>Specify Parameters, Simulate</b>
 3. <b>Visualize Experiments</b>
+
+### 0. Set up Environment
+
+Run `pip install -r requirements.txt` to download dependencies.
 
 ### 1. Update Trial Parameters
 
@@ -27,6 +33,8 @@ After obtaining schedules for stimulus and reward, simply choose parameters for 
 
 Data from simulation can be saved and used for subsequent visualizations. 
 
+Sample implementations in `sim.ipynb`.
+
 ### 3. Visualize Experiments
 
 Use 1 of 3 visualizations for simulated data:
@@ -36,4 +44,11 @@ Use 1 of 3 visualizations for simulated data:
 
 Every visualization has the option to "diversify" parameters, such that we can observe how value predictors with different parameters behave in response to the same reward schedules. The specifications for this are included in `sim.ipynb`
 
-## End Remarks
+## Files Description
+
+- `drl.py`: Functions for DRL
+- `drl.md`: Documentation for functions in `drl.py`
+- `sim.ipynb`: Example simulations using DRL Functions
+- `requirements.txt`: Requirements for `drl.py` and `sim.ipynb`
+- `figs/`: Sample figures produced from current code (any new figures will be outputted to this file, if repo is cloned)
+- `exps/`: Saved simulation data
