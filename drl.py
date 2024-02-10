@@ -11,6 +11,8 @@ from IPython.display import HTML
 import torch
 import numpy as np
 
+# Change the objects/functions as needed for your experiment!
+# CTRL + F sections that say "EDIT HERE!!" (for reward schedules, time of stimulus, etc.)
 
 ############## SIMULATION FUNCTIONS ##############
 
@@ -181,7 +183,7 @@ def sim(T, x, r, tsk, num_predictors, a, g, l, fname=["none"]):
 
     exp = {'V' : V, 'deltas' : deltas, 'T' : T, 'r': r, 'dt': dt, 'states' : states, 'alpha' : alpha, 'gamma' : gamma, 'lmbda' : lmbda}
     if fname[0] != "none":
-        torch.save(exp, f'{fname}.pth')
+        torch.save(exp, f'exps/{fname}.pth')
     return exp
 
 
@@ -227,7 +229,8 @@ def val_at_t(exp,
     if deg_free == 2:
         (fig, ax) = plt.subplots()
 
-        norm = plt.Normalize(vmin=diversify[1][0], vmax=diversify[1][1])
+        bds = set(diversify[1])
+        norm = plt.Normalize(vmin=min(bds), vmax=max(bds))
         for i in range(len(predictors)):
             if diversify[0] == 'alpha':
                 normalized_value = exp['alpha'][i, 0].item() / (exp['alpha'][i, 0].item() + exp['alpha'][i, 1].item())
@@ -292,7 +295,8 @@ def val_at_t(exp,
                 axs[i].plot(predictor[1], color=color)
 
             # Create a colorbar for the current subplot
-            norm = plt.Normalize(vmin=diversify[1][0], vmax=diversify[1][1])
+            bds = set(diversify[1])
+            norm = plt.Normalize(vmin=min(bds), vmax=max(bds))
             sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=norm)
             sm.set_array([])
             cbar = plt.colorbar(sm, ax=axs[i])
@@ -327,7 +331,7 @@ def val_at_t(exp,
         plt.show()
 
         if fname[0] != "none":
-            plt.savefig(f'{fname}_valat{time}.png')
+            plt.savefig(f'figs/{fname}_valat{time}.png')
 
 def heatmap(exp, state, prs, diversify=['none'], fname=["none"]):
     """
@@ -377,7 +381,7 @@ def heatmap(exp, state, prs, diversify=['none'], fname=["none"]):
         plt.ylabel('Trial')
 
         if fname[0] != "none":
-            plt.savefig(f'{fname}_pr{i}_hm.png')
+            plt.savefig(f'figs/{fname}_pr{i}_hm.png')
 
         plt.show()
 
@@ -422,8 +426,9 @@ def val_over_t(e, st, stp, fname=["none"], diversify=["none"], trials = ["none"]
             lines_V.append(line_V)
             lines_r.append(line_r)
             lines_delta.append(line_delta)
-    
-        norm = plt.Normalize(vmin=diversify[1][0], vmax=diversify[1][1])
+
+        bds = set(diversify[1])
+        norm = plt.Normalize(vmin=min(bds), vmax=max(bds))
         sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=norm)
         sm.set_array([])
 
@@ -441,7 +446,8 @@ def val_over_t(e, st, stp, fname=["none"], diversify=["none"], trials = ["none"]
                 lines_r[col_idx].append(line_r)
                 lines_delta[col_idx].append(line_delta)
 
-        norm = plt.Normalize(vmin=diversify[1][0], vmax=diversify[1][1])
+        bds = set(diversify[1])
+        norm = plt.Normalize(vmin=min(bds), vmax=max(bds))
         sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=norm)
         sm.set_array([])
 
@@ -598,7 +604,7 @@ def val_over_t(e, st, stp, fname=["none"], diversify=["none"], trials = ["none"]
     plt.close(animation._fig)
     HTML(animation.to_jshtml())
     if fname[0] != "none":
-        animation.save(f'{fname}_valot.gif', writer=PillowWriter(fps=7))
+        animation.save(f'figs/{fname}_valot.gif', writer=PillowWriter(fps=7))
 
 
 
